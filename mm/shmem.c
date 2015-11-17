@@ -2510,12 +2510,20 @@ static const char *shmem_get_link(struct dentry *dentry,
 {
 	struct page *page = NULL;
 	int error;
-	if (!dentry)
-		return ERR_PTR(-ECHILD);
-	error = shmem_getpage(inode, 0, &page, SGP_READ, NULL);
-	if (error)
-		return ERR_PTR(error);
-	unlock_page(page);	}
+	if (!dentry) {
+		page = find_get_page(inode->i_mapping, 0);
+		if (!page)
+			return ERR_PTR(-ECHILD);
+		if (!PageUptodate(page)) {
+			put_page(page);
+			return ERR_PTR(-ECHILD);
+		}
+	} else {
+		error = shmem_getpage(inode, 0, &page, SGP_READ, NULL);
+		if (error)
+			return ERR_PTR(error);
+		unlock_page(page);
+	}
 	set_delayed_call(done, shmem_put_link, page);
 	return kmap(page);
 }
