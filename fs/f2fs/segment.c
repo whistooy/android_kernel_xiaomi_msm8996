@@ -566,7 +566,7 @@ static int __submit_flush_wait(struct f2fs_sb_info *sbi,
 
 	bio->bi_rw = REQ_OP_WRITE;
 	bio->bi_bdev = bdev;
-	ret = submit_bio_wait(WRITE_FLUSH, bio);
+	ret = submit_bio_wait(bio);
 	bio_put(bio);
 
 	trace_f2fs_issue_flush(bdev, test_opt(sbi, NOBARRIER),
@@ -1092,7 +1092,7 @@ static int __blkdev_issue_discard(struct block_device *bdev, sector_t sector,
 		}
 
 		if (bio) {
-			int ret = submit_bio_wait(op, bio);
+			int ret = submit_bio_wait(bio);
 			bio_put(bio);
 			if (ret)
 				return ret;
@@ -1280,7 +1280,8 @@ submit:
 
 		bio->bi_private = dc;
 		bio->bi_end_io = f2fs_submit_discard_endio;
-		submit_bio(flag, bio);
+		bio->bi_rw |= flag;
+		submit_bio(bio);
 
 		atomic_inc(&dcc->issued_discard);
 

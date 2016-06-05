@@ -94,8 +94,9 @@ static struct bio *mpage_bio_submit(int rw, struct bio *bio)
 		}
 	}
 	bio->bi_end_io = mpage_end_io;
+	bio->bi_rw = rw;
 	guard_bio_eod(rw, bio);
-	submit_bio(rw, bio);
+	submit_bio(bio);
 	return NULL;
 }
 

@@ -131,7 +131,7 @@ ext4_submit_bio_read(struct bio *bio)
 				current->comm);
 		}
 	}
-	submit_bio(READ, bio);
+	submit_bio(bio);
 }
 
 int ext4_mpage_readpages(struct address_space *mapping,
@@ -297,6 +297,7 @@ int ext4_mpage_readpages(struct address_space *mapping,
 			bio->bi_iter.bi_sector = blocks[0] << (blkbits - 9);
 			bio->bi_end_io = mpage_end_io;
 			bio->bi_private = ctx;
+			bio->bi_rw = READ;
 		}
 
 		length = first_hole << blkbits;
@@ -304,8 +305,8 @@ int ext4_mpage_readpages(struct address_space *mapping,
 			goto submit_and_realloc;
 
 		if (((map.m_flags & EXT4_MAP_BOUNDARY) &&
-		     (relative_block == map.m_len)) ||
-		    (first_hole != blocks_per_page)) {
+			(relative_block == map.m_len)) ||
+			(first_hole != blocks_per_page)) {
 			ext4_submit_bio_read(bio);
 			bio = NULL;
 		} else
