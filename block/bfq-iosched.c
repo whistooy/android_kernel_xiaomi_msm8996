@@ -209,7 +209,7 @@ static void bfq_schedule_dispatch(struct bfq_data *bfqd);
  */
 static int bfq_bio_sync(struct bio *bio)
 {
-	return bio_data_dir(bio) == READ || (bio->bi_rw & REQ_SYNC);
+	return bio_data_dir(bio) == READ || (bio->bi_opf & REQ_SYNC);
 }
 
 /*
@@ -1690,7 +1690,7 @@ static void bfq_bio_merged(struct request_queue *q, struct request *req,
 			   struct bio *bio)
 {
 	bfqg_stats_update_io_merged(bfqq_group(RQ_BFQQ(req)), bio_op(bio),
-								bio->bi_rw);
+								bio->bi_opf);
 }
 #endif
 

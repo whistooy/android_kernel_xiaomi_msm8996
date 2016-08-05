@@ -889,7 +889,7 @@ static void blk_add_trace_bio(struct request_queue *q, struct bio *bio,
 		tsk = bio->bi_io_vec->bv_page->tsk_dirty;
 
 	__blk_add_trace(bt, bio->bi_iter.bi_sector, bio->bi_iter.bi_size,
-			bio_op(bio), bio->bi_rw, what, error, 0, NULL, tsk);
+			bio_op(bio), bio->bi_opf, what, error, 0, NULL, tsk);
 	rcu_read_unlock();
 }
 
@@ -1017,7 +1017,7 @@ static void blk_add_trace_split(void *ignore,
 			tsk = bio->bi_io_vec->bv_page->tsk_dirty;
 
 		__blk_add_trace(bt, bio->bi_iter.bi_sector,
-				bio->bi_iter.bi_size, bio_op(bio), bio->bi_rw,
+				bio->bi_iter.bi_size, bio_op(bio), bio->bi_opf,
 				bio->bi_error, sizeof(rpdu), &rpdu, tsk);
 	}
 	rcu_read_unlock();
@@ -1061,7 +1061,7 @@ static void blk_add_trace_bio_remap(void *ignore,
 		tsk = bio->bi_io_vec->bv_page->tsk_dirty;
 
 	__blk_add_trace(bt, bio->bi_iter.bi_sector, bio->bi_iter.bi_size,
-			bio_op(bio), bio->bi_rw, BLK_TA_REMAP, bio->bi_error,
+			bio_op(bio), bio->bi_opf, BLK_TA_REMAP, bio->bi_error,
 			sizeof(r), &r, tsk);
 	rcu_read_unlock();
 }
