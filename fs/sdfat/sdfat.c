@@ -1528,7 +1528,7 @@ defrag_validate_pages(
 
 		/* Attach empty BHs */
 		if (!page_has_buffers(page))
-			create_empty_buffers(page, 1 << inode->i_blkbits, 0);
+			create_empty_buffers(page, i_blocksize(inode), 0);
 
 		/* Mark dirty in BHs */
 		bh = head = page_buffers(page);
@@ -3079,7 +3079,7 @@ static void sdfat_truncate(struct inode *inode, loff_t old_size)
 	struct super_block *sb = inode->i_sb;
 	struct sdfat_sb_info *sbi = SDFAT_SB(sb);
 	FS_INFO_T *fsi = &(sbi->fsi);
-	unsigned int blocksize = 1 << inode->i_blkbits;
+	unsigned int blocksize = i_blocksize(inode);
 	loff_t aligned_size;
 	int err;
 
@@ -3496,7 +3496,7 @@ static int sdfat_get_block(struct inode *inode, sector_t iblock,
 				 * and the two size variables should indicate
 				 * same i_block
 				 */
-				unsigned int blocksize = 1 << inode->i_blkbits;
+				unsigned int blocksize = i_blocksize(inode);
 				BUG_ON(SDFAT_I(inode)->i_size_ondisk -
 					SDFAT_I(inode)->i_size_aligned >= blocksize);
 			}
