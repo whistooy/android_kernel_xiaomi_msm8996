@@ -220,6 +220,9 @@ line of text and contains the following stats separated by whitespace:
  pages_compacted  the number of pages freed during compaction
  huge_pages	  the number of incompressible pages
 
+ dup_data_size	  deduplicated data size
+ meta_data_size	  the amount of metadata allocated for deduplication feature
+
 9) Deactivate:
 	swapoff /dev/zram0
 	umount /dev/zram1
