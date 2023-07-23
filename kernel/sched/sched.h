@@ -228,9 +228,8 @@ struct cfs_bandwidth {
 	ktime_t period;
 	u64 quota, runtime;
 	s64 hierarchical_quota;
-	u64 runtime_expires;
 
-	int idle, period_active;
+	short idle, period_active;
 	struct hrtimer period_timer, slack_timer;
 	struct list_head throttled_cfs_rq;
 
@@ -432,7 +431,6 @@ struct cfs_rq {
 
 
 	int runtime_enabled;
-	u64 runtime_expires;
 	s64 runtime_remaining;
 
 	u64 throttled_clock, throttled_clock_task;
@@ -2085,7 +2083,7 @@ static inline void cpufreq_update_util(struct rq *rq, unsigned int flags)
 
         data = rcu_dereference_sched(*this_cpu_ptr(&cpufreq_update_util_data));
         if (data)
-                data->func(data, rq_clock(rq), flags);
+                data->func(data, sched_clock(), flags);
 }
 
 static inline void cpufreq_update_this_cpu(struct rq *rq, unsigned int flags)

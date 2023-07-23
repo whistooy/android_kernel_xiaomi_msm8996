@@ -39,6 +39,7 @@ static bool migrate_one_irq(struct irq_desc *desc)
 		const struct cpumask *default_affinity;
 
 		default_affinity = desc->affinity_hint ? : irq_default_affinity;
+
 		/*
 		 * The order of preference for selecting a fallback CPU is
 		 *
