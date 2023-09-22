@@ -87,12 +87,6 @@ static inline int wcnss_wlan_crypto_ahash_setkey(void *tfm,
         return 0;
 }
 
-static inline void *wcnss_wlan_crypto_alloc_ablkcipher(const char *alg_name,
-                                                       u32 type, u32 mask)
-{
-        return NULL;
-}
-
 static inline void wcnss_wlan_ablkcipher_request_free(void *req)
 {
 }
