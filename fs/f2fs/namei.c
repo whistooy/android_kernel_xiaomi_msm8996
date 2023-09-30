@@ -1204,9 +1204,8 @@ static const char *f2fs_encrypted_get_link(struct dentry *dentry,
 					   struct inode *inode,
 					   struct delayed_call *done)
 {
-	struct inode *inode = d_inode(dentry);
 	struct page *page;
-	void *target;
+	const char *target;
 
 	if (!dentry)
 		return ERR_PTR(-ECHILD);
@@ -1216,9 +1215,8 @@ static const char *f2fs_encrypted_get_link(struct dentry *dentry,
 		return ERR_CAST(page);
 
 	target = fscrypt_get_symlink(inode, page_address(page),
-				     inode->i_sb->s_blocksize);
+				     inode->i_sb->s_blocksize, done);
 	put_page(page);
-	set_delayed_call(done, kfree_link, target);
 	return target;
 }
 
