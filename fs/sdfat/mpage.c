@@ -99,13 +99,13 @@ static inline void __sdfat_clean_bdev_aliases(struct block_device *bdev, sector_
 }
 #endif
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 8, 0)
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 4, 0)
 static inline void __sdfat_submit_bio_write2(int flags, struct bio *bio)
 {
 	bio_set_op_attrs(bio, REQ_OP_WRITE, flags);
 	submit_bio(bio);
 }
-#else /* LINUX_VERSION_CODE < KERNEL_VERSION(4,8,0) */
+#else /* LINUX_VERSION_CODE < KERNEL_VERSION(4,4,0) */
 static inline void __sdfat_submit_bio_write2(int flags, struct bio *bio)
 {
 	submit_bio(WRITE | flags, bio);

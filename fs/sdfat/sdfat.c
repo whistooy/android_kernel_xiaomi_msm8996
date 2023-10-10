@@ -242,7 +242,8 @@ static inline unsigned long __sdfat_init_name_hash(const struct dentry *dentry)
 #else /* LINUX_VERSION_CODE < KERNEL_VERSION(4, 8, 0) */
 static inline void __sdfat_submit_bio_write(struct bio *bio)
 {
-	submit_bio(WRITE, bio);
+	bio_set_op_attrs(bio, REQ_OP_WRITE, 0);
+	submit_bio(bio);
 }
 
 static inline unsigned int __sdfat_full_name_hash(const struct dentry *unused, const char *name, unsigned int len)
