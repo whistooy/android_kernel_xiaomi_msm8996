@@ -3339,7 +3339,7 @@ static ssize_t ext4_ext_direct_IO(struct kiocb *iocb, struct iov_iter *iter,
 	overwrite = *((int *)iocb->private);
 
 	if (overwrite)
-		mutex_unlock(&inode->i_mutex);
+		inode_unlock(inode);
 
 	/*
 	 * We could direct write to holes and fallocate.
@@ -3426,7 +3426,7 @@ retake_lock:
 		inode_dio_end(inode);
 	/* take i_mutex locking again if we do a ovewrite dio */
 	if (overwrite)
-		mutex_lock(&inode->i_mutex);
+		inode_lock(inode);
 
 	return ret;
 }
@@ -3854,7 +3854,7 @@ int ext4_punch_hole(struct inode *inode, loff_t offset, loff_t length)
 			return ret;
 	}
 
-	mutex_lock(&inode->i_mutex);
+	inode_lock(inode);
 
 	/* No need to punch hole beyond i_size */
 	if (offset >= inode->i_size)
@@ -3966,7 +3966,7 @@ out_dio:
 	up_write(&EXT4_I(inode)->i_mmap_sem);
 	ext4_inode_resume_unlocked_dio(inode);
 out_mutex:
-	mutex_unlock(&inode->i_mutex);
+	inode_unlock(inode);
 	return ret;
 #else
 	/*
