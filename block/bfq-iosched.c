@@ -209,10 +209,7 @@ static void bfq_schedule_dispatch(struct bfq_data *bfqd);
  */
 static int bfq_bio_sync(struct bio *bio)
 {
-	if (bio_data_dir(bio) == READ || (bio->bi_rw & REQ_SYNC))
-		return 1;
-
-	return 0;
+	return bio_data_dir(bio) == READ || (bio->bi_rw & REQ_SYNC);
 }
 
 /*
@@ -1316,7 +1313,7 @@ static void bfq_bfqq_handle_idle_busy_switch(struct bfq_data *bfqd,
 
 	BUG_ON(bfqq == bfqd->in_service_queue);
 	bfqg_stats_update_io_add(bfqq_group(RQ_BFQQ(rq)), bfqq,
-				 rq->cmd_flags);
+				 req_op(rq), rq->cmd_flags);
 
 	/*
 	 * bfqq deserves to be weight-raised if:
@@ -1636,7 +1633,8 @@ static void bfq_remove_request(struct request *rq)
 		BUG_ON(bfqq->meta_pending == 0);
 		bfqq->meta_pending--;
 	}
-	bfqg_stats_update_io_remove(bfqq_group(bfqq), rq->cmd_flags);
+	bfqg_stats_update_io_remove(bfqq_group(bfqq), req_op(rq),
+								rq->cmd_flags);
 }
 
 static int bfq_merge(struct request_queue *q, struct request **req,
@@ -1691,7 +1689,8 @@ static void bfq_merged_request(struct request_queue *q, struct request *req,
 static void bfq_bio_merged(struct request_queue *q, struct request *req,
 			   struct bio *bio)
 {
-	bfqg_stats_update_io_merged(bfqq_group(RQ_BFQQ(req)), bio->bi_rw);
+	bfqg_stats_update_io_merged(bfqq_group(RQ_BFQQ(req)), bio_op(bio),
+								bio->bi_rw);
 }
 #endif
 
@@ -1721,7 +1720,8 @@ static void bfq_merged_requests(struct request_queue *q, struct request *rq,
 		bfqq->next_rq = rq;
 
 	bfq_remove_request(next);
-	bfqg_stats_update_io_merged(bfqq_group(bfqq), next->cmd_flags);
+	bfqg_stats_update_io_merged(bfqq_group(bfqq), req_op(next),
+				    next->cmd_flags);
 }
 
 /* Must be called with bfqq != NULL */
@@ -2174,7 +2174,7 @@ static int bfq_allow_bio_merge(struct request_queue *q, struct request *rq,
 	 * Disallow merge of a sync bio into an async request.
 	 */
 	if (bfq_bio_sync(bio) && !rq_is_sync(rq))
-		return 0;
+		return false;
 
 	/*
 	 * Lookup the bfqq that this bio will be queued with. Allow
@@ -2183,7 +2183,7 @@ static int bfq_allow_bio_merge(struct request_queue *q, struct request *rq,
 	 */
 	bic = bfq_bic_lookup(bfqd, current->io_context);
 	if (!bic)
-		return 0;
+		return false;
 
 	bfqq = bic_to_bfqq(bic, bfq_bio_sync(bio));
 	/*
@@ -4428,7 +4428,9 @@ static void bfq_completed_request(struct request_queue *q, struct request *rq)
 	bfqq->dispatched--;
 	bfqg_stats_update_completion(bfqq_group(bfqq),
 				     rq_start_time_ns(rq),
-				     rq_io_start_time_ns(rq), rq->cmd_flags);
+				     rq_io_start_time_ns(rq),
+				     req_op(rq),
+				     rq->cmd_flags);
 
 	if (!bfqq->dispatched && !bfq_bfqq_busy(bfqq)) {
 		BUG_ON(!RB_EMPTY_ROOT(&bfqq->sort_list));
@@ -4532,7 +4534,7 @@ static int __bfq_may_queue(struct bfq_queue *bfqq)
 	return ELV_MQUEUE_MAY;
 }
 
-static int bfq_may_queue(struct request_queue *q, int rw)
+static int bfq_may_queue(struct request_queue *q, int op, int op_flags)
 {
 	struct bfq_data *bfqd = q->elevator->elevator_data;
 	struct task_struct *tsk = current;
@@ -4549,7 +4551,7 @@ static int bfq_may_queue(struct request_queue *q, int rw)
 	if (!bic)
 		return ELV_MQUEUE_MAY;
 
-	bfqq = bic_to_bfqq(bic, rw_is_sync(rw));
+	bfqq = bic_to_bfqq(bic, rw_is_sync(op, op_flags));
 	if (bfqq)
 		return __bfq_may_queue(bfqq);
 
@@ -5001,7 +5003,7 @@ static int __init bfq_slab_setup(void)
 
 static ssize_t bfq_var_show(unsigned int var, char *page)
 {
-	return sprintf(page, "%d\n", var);
+	return sprintf(page, "%u\n", var);
 }
 
 static ssize_t bfq_var_store(unsigned long *var, const char *page,
