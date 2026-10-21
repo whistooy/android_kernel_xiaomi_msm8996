@@ -635,6 +635,11 @@ static bool is_haptics_idle(struct hap_chip *chip)
 	if (!(val & HAP_BUSY_BIT))
 		return true;
 
+	/* direct/pwm modes have no buffered waveform to drain */
+	if (chip->play_mode == HAP_DIRECT ||
+			chip->play_mode == HAP_PWM)
+		return true;
+
 	if (chip->play_time_ms <= 20)
 		wait_time_us = chip->play_time_ms * 1000;
 	else
@@ -1439,7 +1444,8 @@ static ssize_t qpnp_haptics_show_state(struct device *dev,
 	struct led_classdev *cdev = dev_get_drvdata(dev);
 	struct hap_chip *chip = container_of(cdev, struct hap_chip, cdev);
 
-	return snprintf(buf, PAGE_SIZE, "%d\n", chip->module_en);
+	/* state reflects effect playback, not module power state */
+	return snprintf(buf, PAGE_SIZE, "%d\n", atomic_read(&chip->state));
 }
 
 static ssize_t qpnp_haptics_store_state(struct device *dev,
